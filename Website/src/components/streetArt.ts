@@ -204,6 +204,53 @@ export const SPLATTERS = {
   shardIn: { area: WHITE_SHARD, edge: SHARD_EDGE, direction: "in", color: PALETTE.black, seed: 17, clusters: 6 },
 } satisfies Record<string, Splatter>;
 
+// ── Sharp cut lines ───────────────────────────────────────────────────────────
+// Thin parallel cuts and tapered slivers in the black gaps, running with the
+// bolt's diagonal. Top-left stays clean on purpose (same as the splatter).
+export type CutLine = {
+  from: Pt;            // viewport fractions
+  to: Pt;
+  width: number;       // fraction of min(w, h)
+  color: string;       // PALETTE colour (accent allowed — goes through paint())
+  taper?: boolean;     // sliver: full width at `from`, sharp point at `to`
+};
+
+export const drawCutLine = (ctx: CanvasRenderingContext2D, l: CutLine, w: number, h: number) => {
+  const a = { x: l.from.x * w, y: l.from.y * h };
+  const b = { x: l.to.x * w, y: l.to.y * h };
+  const width = l.width * Math.min(w, h);
+  ctx.fillStyle = ctx.strokeStyle = paint(l.color);
+
+  if (l.taper) {
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    const nx = -(b.y - a.y) / len, ny = (b.x - a.x) / len;
+    ctx.beginPath();
+    ctx.moveTo(a.x + nx * width / 2, a.y + ny * width / 2);
+    ctx.lineTo(b.x, b.y);
+    ctx.lineTo(a.x - nx * width / 2, a.y - ny * width / 2);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    ctx.lineCap = "butt";
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+};
+
+export const CUT_LINES: CutLine[] = [
+  // Right-middle: hugging the shard's upper edge (0.78,0.58)→(0.97,0.46),
+  // stepping outward just past the grey echo — mirrors the bottom group
+  { from: { x: 0.72, y: 0.588 }, to: { x: 0.91, y: 0.468 }, width: 0.0015, color: PALETTE.white },
+  { from: { x: 0.68, y: 0.593 }, to: { x: 0.90, y: 0.454 }, width: 0.003, color: PALETTE.white },
+  // Bottom-middle: black gap between PROJECTS and the shard
+  { from: { x: 0.44, y: 1.0 }, to: { x: 0.63, y: 0.81 }, width: 0.003, color: PALETTE.white },
+  { from: { x: 0.485, y: 1.0 }, to: { x: 0.62, y: 0.865 }, width: 0.0015, color: PALETTE.white },
+  { from: { x: 0.40, y: 1.03 }, to: { x: 0.58, y: 0.845 }, width: 0.012, color: PALETTE.white, taper: true },
+];
+
 // ── Nested star bursts ────────────────────────────────────────────────────────
 // Phantom Thieves star: filled five-point stars stacked from largest to
 // smallest, alternating colours, so the gaps read as thick bands.
@@ -241,16 +288,24 @@ const traceStar = (
   ctx.closePath();
 };
 
-export const drawStarBurst = (ctx: CanvasRenderingContext2D, burst: StarBurst, w: number, h: number) => {
+// `extra` layers motion on top of the config: `rotate` (degrees) for the
+// flicker snap / intro twist, `scale` for the intro pop. Defaults = at rest.
+export const drawStarBurst = (
+  ctx: CanvasRenderingContext2D,
+  burst: StarBurst,
+  w: number,
+  h: number,
+  extra: { rotate?: number; scale?: number } = {},
+) => {
   const place = h > w ? burst.portrait : burst;
   const cx = place.cx * w;
   const cy = place.cy * h;
-  const outer = place.radius * Math.min(w, h);
+  const outer = place.radius * Math.min(w, h) * (extra.scale ?? 1);
   const rings = burst.ringTwist.length;
 
   burst.ringTwist.forEach((twist, i) => {
     const r = outer * (1 - i / rings);
-    traceStar(ctx, cx, cy, r, r * burst.innerRatio, burst.rotation + twist);
+    traceStar(ctx, cx, cy, r, r * burst.innerRatio, burst.rotation + twist + (extra.rotate ?? 0));
     ctx.fillStyle = paint(burst.colors[i % burst.colors.length]);
     ctx.fill();
   });

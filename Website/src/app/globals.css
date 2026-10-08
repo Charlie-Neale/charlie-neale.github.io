@@ -56,6 +56,7 @@ html[data-theme="2"] :is(a, button, input, textarea, .p5-interactive) {
   border: 0;
   padding: 0;
   z-index: 20;
+  pointer-events: auto; /* its ParallaxLayer wrapper is pointer-events: none */
 }
 @media (orientation: portrait) {
   .theme-star { left: var(--pcx); top: var(--pcy); width: var(--pd); height: var(--pd); }
@@ -63,6 +64,24 @@ html[data-theme="2"] :is(a, button, input, textarea, .p5-interactive) {
 .theme-star:focus-visible {
   outline: 3px solid var(--white);
   outline-offset: 4px;
+}
+
+/* Map node placement (HomeMap MapNode) — portrait vars fall back to landscape */
+.map-node {
+  top: var(--top);
+  left: var(--left);
+  right: var(--right);
+  bottom: var(--bottom);
+  transform: scale(var(--scale)) rotate(var(--rot));
+}
+@media (orientation: portrait) {
+  .map-node {
+    top: var(--p-top, var(--top));
+    left: var(--p-left, var(--left));
+    right: var(--p-right, var(--right));
+    bottom: var(--p-bottom, var(--bottom));
+    transform: scale(var(--p-scale, var(--scale))) rotate(var(--rot));
+  }
 }
 
 /* Custom aggressive scrollbar for internal section panels */

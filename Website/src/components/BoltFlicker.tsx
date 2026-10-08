@@ -53,6 +53,9 @@ const FLICKERS: Frame[][] = [
   ],
 ];
 
+// Fired at the start of every burst — StreetBackdrop's stars snap a few degrees
+export const BOLT_BURST_EVENT = "boltburst";
+
 const BURST_GAP_MIN_MS = 1500;
 const BURST_GAP_MAX_MS = 4000;
 const OFFSET_JITTER = 0.016; // per-burst wobble on every echo offset
@@ -170,6 +173,7 @@ export default function BoltFlicker() {
     };
 
     const burst = () => {
+      window.dispatchEvent(new Event(BOLT_BURST_EVENT)); // stars snap on this
       const frames = nextPattern();
       const jx = rand(-OFFSET_JITTER, OFFSET_JITTER);
       const jy = rand(-OFFSET_JITTER, OFFSET_JITTER);

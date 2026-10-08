@@ -4,6 +4,8 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HomeMap from "./HomeMap";
 import SectionPanel from "./SectionPanel";
+import { IntroProvider } from "./Intro";
+import { ParallaxProvider } from "./Parallax";
 
 export type SectionType = "projects" | "experience" | "about" | null;
 
@@ -92,7 +94,12 @@ export default function ZoomNav() {
         style={{ willChange: "transform" }}
         className="absolute inset-0 w-full h-full"
       >
-        <HomeMap onNavigate={navigateTo} />
+        {/* Intro: slam-in once per tab. Parallax: mouse-driven layer drift. */}
+        <IntroProvider>
+          <ParallaxProvider>
+            <HomeMap onNavigate={navigateTo} />
+          </ParallaxProvider>
+        </IntroProvider>
       </motion.div>
 
       {/* ── Section panel — arrives from top-right, exits back that way ── */}

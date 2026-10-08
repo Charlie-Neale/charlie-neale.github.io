@@ -7,8 +7,14 @@ import { LetterLabel, PROJECTS_NAV, EXPERIENCE_NAV, ABOUT_ME_NAV } from "./Lette
 import StreetBackdrop from "./StreetBackdrop";
 import BoltFlicker from "./BoltFlicker";
 import ThemeStar from "./ThemeStar";
+import { useIntro } from "./Intro";
+import { ParallaxLayer } from "./Parallax";
 import { VICTORY_BOLT, tracePolygon } from "./streetArt";
 import { THEME_EVENT, currentAccent } from "./theme";
+
+// Torn-paper cut for the name card: hard notches, slanted right edge, no curves
+const NAME_CARD_CLIP =
+  'polygon(0 6%, 4% 0, 62% 3%, 100% 0, 96% 48%, 100% 100%, 38% 96%, 3% 100%, 0 70%)';
 
 const NAV_CONFIGS = {
   PROJECTS: PROJECTS_NAV,
@@ -26,9 +32,9 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
 
     const resizeAndDraw = () => {
       const dpr = window.devicePixelRatio || 1;
-      const rect = sharpCanvas.getBoundingClientRect();
-      const w = rect.width;
-      const h = rect.height;
+      // Layout size, not getBoundingClientRect — that includes parallax/zoom transforms
+      const w = sharpCanvas.clientWidth;
+      const h = sharpCanvas.clientHeight;
 
       sharpCanvas.width = w * dpr;
       sharpCanvas.height = h * dpr;
@@ -72,39 +78,74 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
       {/* Street-art colour blocks behind everything */}
       <StreetBackdrop />
 
-      {/* Randomised flicker echoes + flying zigzags, behind the bolt */}
-      <BoltFlicker />
+      {/* Bolt layer: flicker echoes + the bolt itself. Ignites with a hard
+          on/off/on after the slabs land (first load per tab only). */}
+      <ParallaxLayer
+        depth={6}
+        className="z-10"
+        hidden={{ opacity: 0 }}
+        shown={{ opacity: [0, 1, 0, 1] }}
+        transition={{ duration: 0.3, times: [0, 0.3, 0.55, 1], ease: "linear", delay: 0.3 }}
+      >
+        {/* Randomised flicker echoes + flying zigzags, behind the bolt */}
+        <BoltFlicker />
 
-      {/* Canvas Sharp Pass (Static) */}
-      <canvas
-        ref={sharpCanvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none z-10"
-      />
+        {/* Canvas Sharp Pass (Static) */}
+        <canvas
+          ref={sharpCanvasRef}
+          className="absolute inset-0 w-full h-full pointer-events-none z-10"
+        />
+      </ParallaxLayer>
 
-      {/* Invisible click target over the main star — cycles the accent theme */}
-      <ThemeStar />
+      {/* Invisible click target over the main star — cycles the accent theme.
+          Same depth as the stars layer so it stays on top of the main star. */}
+      <ParallaxLayer depth={10} className="z-20">
+        <ThemeStar />
+      </ParallaxLayer>
 
-      {/* Top Left Corner Identity Watermark */}
-      <div className="absolute top-8 left-8 sm:top-12 sm:left-12 z-20 flex flex-col items-start pointer-events-none">
-        <motion.h1
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 150, damping: 15 }}
-          style={{ 
+      {/* Top Left Corner Identity Watermark — on a torn-paper black card so it
+          stays readable over the slab and bolt in every accent theme */}
+      <ParallaxLayer
+        depth={12}
+        className="z-20"
+        hidden={{ x: -120, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 150, damping: 15, delay: 0.2 }}
+      >
+      <div
+        className="absolute top-5 left-5 sm:top-9 sm:left-9 flex flex-col items-start pointer-events-none"
+        style={{ padding: '14px 26px 16px 18px' }}
+      >
+        {/* White cut-paper offset behind the card — shows on the slab in any theme */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: '#FFF', clipPath: NAME_CARD_CLIP, transform: 'translate(7px, 7px)' }}
+        />
+        {/* Black card face */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{ background: '#000', clipPath: NAME_CARD_CLIP }}
+        />
+
+        <h1
+          className="relative"
+          style={{
             fontFamily: 'var(--font-oswald)',
             fontWeight: 900,
             fontSize: '60px',
             lineHeight: 1,
             color: '#FFFFFF',
             textTransform: 'uppercase',
-            textShadow: '4px 4px 0px #000000',
+            textShadow: '4px 4px 0px var(--red)',
             WebkitTextStroke: '2px #FFFFFF',
           }}
         >
           Charlie Neale
-        </motion.h1>
+        </h1>
 
         <h2
+          className="relative"
           style={{
             fontFamily: 'var(--font-oswald)',
             fontWeight: 400,
@@ -113,27 +154,27 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
             letterSpacing: '4px',
             textTransform: 'uppercase',
             marginTop: '6px',
-            textShadow: '2px 2px 0px #000', // stays readable on every accent
-
           }}
         >
           UNDERGRADUATE · UNIVERSITY OF TORONTO
         </h2>
 
         <h3
+          className="relative"
           style={{
             fontFamily: 'var(--font-marker)',
             fontSize: '14px',
-            color: '#000000',
+            color: 'var(--red)',
             marginTop: '3px',
           }}
         >
           Computer Science · Astrophysics · Leadership
         </h3>
       </div>
+      </ParallaxLayer>
 
-      {/* Map Nodes Overlaid on Canvas Path */}
-      <div className="absolute inset-0 z-20 w-full h-full pointer-events-none">
+      {/* Map Nodes Overlaid on Canvas Path — nearest layer, drifts the most */}
+      <ParallaxLayer depth={12} className="z-20">
         {/* PROJECTS */}
         <MapNode
           label="PROJECTS"
@@ -160,6 +201,7 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
           direction="left"
           top="30%"
           left="28%"
+          portrait={{ top: "33%", left: "8%", scale: 0.85 }}
         />
 
         {/* ABOUT ME */}
@@ -174,8 +216,9 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
           direction="right"
           top="20%"
           left="70%"
+          portrait={{ top: "46%", left: "6%", scale: 0.85 }}
         />
-      </div>
+      </ParallaxLayer>
 
     </div>
   );
@@ -192,7 +235,8 @@ const MapNode = ({
   rotation = 0,
   cardRotation = 0,
   delay,
-  direction
+  direction,
+  portrait,
 }: {
   label: string;
   section: "projects" | "experience" | "about";
@@ -203,9 +247,13 @@ const MapNode = ({
   cardRotation?: number;
   delay: number;
   direction: 'left' | 'right';
+  // Portrait-screen overrides; anything left out falls back to the values above
+  portrait?: { top?: string; left?: string; right?: string; bottom?: string; scale?: number };
 }) => {
   const nodeRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const intro = useIntro();
+  const offstage = { x: direction === 'left' ? -150 : 150, opacity: 0 };
 
   const handleClick = () => {
     if (nodeRef.current) {
@@ -216,17 +264,31 @@ const MapNode = ({
     }
   };
 
+  // Placement as CSS vars so `.map-node` can swap to the portrait set without
+  // a JS layout check (no flash on load). Portrait vars only set when given.
+  const placement = {
+    "--top": top ?? "auto", "--left": left ?? "auto",
+    "--right": right ?? "auto", "--bottom": bottom ?? "auto",
+    "--scale": baseScale, "--rot": `${rotation}deg`,
+    ...(portrait?.top && { "--p-top": portrait.top }),
+    ...(portrait?.left && { "--p-left": portrait.left }),
+    ...(portrait?.right && { "--p-right": portrait.right }),
+    ...(portrait?.bottom && { "--p-bottom": portrait.bottom }),
+    ...(portrait?.scale && { "--p-scale": portrait.scale }),
+  } as React.CSSProperties;
+
   return (
-    <div 
-      className="absolute flex flex-col items-center pointer-events-auto" 
-      style={{ top, left, right, bottom, transform: `scale(${baseScale}) rotate(${rotation}deg)` }}
+    <div
+      className="map-node absolute flex flex-col items-center pointer-events-auto"
+      style={placement}
     >
       <motion.div
         ref={nodeRef}
-        initial={{ x: direction === 'left' ? -150 : 150, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ delay, type: "spring", stiffness: 100, damping: 14 }}
-        whileHover={{ x: -3, y: -3 }}
+        initial={offstage}
+        animate={intro === "pending"
+          ? offstage
+          : { x: 0, opacity: 1, transition: intro === "skip" ? { duration: 0 } : { delay, type: "spring", stiffness: 100, damping: 14 } }}
+        whileHover={{ x: -3, y: -3, transition: { type: "spring", stiffness: 400, damping: 20 } }}
         whileTap={{ scale: 0.95 }}
         onClick={handleClick}
         onHoverStart={() => setIsHovered(true)}
@@ -253,8 +315,8 @@ const MapNode = ({
             zIndex: 1,
             padding: '8px 12px',
             clipPath: 'polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%)',
-            background: 'rgba(0,0,0,0.3)', // subtle backing so letters float above
-            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)',
+            background: '#000', // solid backing — reads over the bolt, flicker and dots
+            boxShadow: isHovered ? 'inset 0 0 0 2px #FFF' : 'none',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
