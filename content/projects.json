@@ -1,9 +1,0 @@
-[
-  {
-    "title": "March Madness Predictor",
-    "description": "A machine learning model that predicts NCAA tournament outcomes.",
-    "tech": ["Python", "Scikit-Learn", "Pandas"],
-    "link": "https://github.com/Charlie-Neale/march-madness-predictor",
-    "image": "https://opengraph.githubassets.com/1/Charlie-Neale/march-madness-predictor"
-  }
-]

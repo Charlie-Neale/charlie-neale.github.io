@@ -54,7 +54,7 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
         { x: 0.60, y: 0.35 }, // notch
         { x: 0.85, y: 0.25 }, // spike
         { x: 0.80, y: 0.15 }, // notch
-        { x: 1.1, y: -0.1 },  // Tip off-screen (CONTACT sits near here)
+        { x: 1.1, y: -0.1 },  // Tip off-screen
         
         // Top/Upper Edge (Zigzagging down-left)
         { x: 0.9, y: -0.1 }, 
