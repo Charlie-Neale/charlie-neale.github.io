@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import {
-  PALETTE, RED_SLAB, STAR_BURSTS, WHITE_SHARD, WHITE_SHARD_BAND,
-  drawStarBurst, fillSlab, tracePolygon,
+  PALETTE, RED_SLAB, SPLATTERS, STAR_BURSTS, WHITE_SHARD, WHITE_SHARD_BAND,
+  drawSplatter, drawStarBurst, fillSlab, tracePolygon,
 } from "./streetArt";
 import { THEME_EVENT } from "./theme";
 
@@ -37,10 +37,15 @@ export default function StreetBackdrop() {
       fillSlab(ctx, WHITE_SHARD_BAND, w, h, PALETTE.greyLight);
       ctx.restore();
 
-      // 3. Star bursts on top of the white shard
+      // 3. Ink splatter off the shard's edge: black lands on the white, white
+      //    kicks out into the black
+      drawSplatter(ctx, SPLATTERS.shardIn, w, h);
+      drawSplatter(ctx, SPLATTERS.shardOut, w, h);
+
+      // 4. Star bursts on top of the white shard (and its splatter)
       STAR_BURSTS.forEach(burst => drawStarBurst(ctx, burst, w, h));
 
-      // 4. Red slab tearing in from the top-left
+      // 5. Red slab tearing in from the top-left
       fillSlab(ctx, RED_SLAB, w, h, PALETTE.red);
     };
 

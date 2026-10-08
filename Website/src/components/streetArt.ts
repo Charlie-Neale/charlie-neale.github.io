@@ -89,6 +89,121 @@ export const WHITE_SHARD_BAND: Pt[] = [
   { x: 0.67, y: 1.05 },
 ];
 
+// ── Ink splatter ──────────────────────────────────────────────────────────────
+// Seeded so the splatter is identical on every load and resize — it scales
+// with the viewport but never reshuffles. Like the chaos letters: tune the
+// seed/counts by eye, don't regenerate per render.
+
+// mulberry32: tiny deterministic PRNG, returns floats in [0, 1)
+export const seededRandom = (seed: number) => () => {
+  seed = (seed + 0x6d2b79f5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
+const insidePolygon = (p: Pt, poly: Pt[]) => {
+  let hit = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a.y > p.y) !== (b.y > p.y) && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) hit = !hit;
+  }
+  return hit;
+};
+
+export type Splatter = {
+  area: Pt[];          // the colour area whose edge throws ink (viewport fractions)
+  edge: Pt[];          // polyline along that area's boundary to throw from
+  direction: "out" | "in"; // out = ink leaves the area, in = ink lands inside it
+  color: string;       // PALETTE colour (accent allowed — goes through paint())
+  seed: number;
+  clusters: number;
+};
+
+export const drawSplatter = (ctx: CanvasRenderingContext2D, s: Splatter, w: number, h: number) => {
+  const rand = seededRandom(s.seed);
+  const r = (min: number, max: number) => min + rand() * (max - min);
+  const S = Math.min(w, h);
+  const px = s.edge.map(p => ({ x: p.x * w, y: p.y * h }));
+  const area = s.area.map(p => ({ x: p.x * w, y: p.y * h }));
+
+  // Segment lengths so clusters spread evenly along the whole edge
+  const lengths = px.slice(1).map((p, i) => Math.hypot(p.x - px[i].x, p.y - px[i].y));
+  const total = lengths.reduce((a, b) => a + b, 0);
+
+  ctx.fillStyle = paint(s.color);
+
+  for (let c = 0; c < s.clusters; c++) {
+    // Pick a point on the edge
+    let at = rand() * total;
+    let i = 0;
+    while (at > lengths[i] && i < lengths.length - 1) at -= lengths[i++];
+    const a = px[i], b = px[i + 1];
+    const t = at / lengths[i];
+    const p = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+
+    // Normal pointing the way the ink flies
+    const tx = (b.x - a.x) / lengths[i], ty = (b.y - a.y) / lengths[i];
+    let n = { x: -ty, y: tx };
+    const probeInside = insidePolygon({ x: p.x + n.x * 4, y: p.y + n.y * 4 }, area);
+    if ((s.direction === "out") === probeInside) n = { x: -n.x, y: -n.y };
+
+    // Main blot straddling the edge, roughened with overlapping lobes
+    const blot = r(0.009, 0.02) * S;
+    const bx = p.x + n.x * blot * 0.4, by = p.y + n.y * blot * 0.4;
+    ctx.beginPath();
+    ctx.arc(bx, by, blot, 0, Math.PI * 2);
+    for (let k = 0; k < 4; k++) {
+      const ang = r(0, Math.PI * 2);
+      const lx = bx + Math.cos(ang) * blot * 0.8, ly = by + Math.sin(ang) * blot * 0.8;
+      const lobe = blot * r(0.35, 0.6);
+      ctx.moveTo(lx + lobe, ly);
+      ctx.arc(lx, ly, lobe, 0, Math.PI * 2);
+    }
+    ctx.fill();
+
+    // Drops thrown outward — smaller the further they fly
+    const maxReach = r(0.06, 0.13) * S;
+    const drops = Math.floor(r(6, 13));
+    ctx.beginPath();
+    for (let k = 0; k < drops; k++) {
+      const d = r(blot * 1.5, maxReach);
+      const spread = r(-0.5, 0.5);
+      const dx = n.x * d + tx * d * spread;
+      const dy = n.y * d + ty * d * spread;
+      const rad = Math.max(1, r(0.002, 0.0065) * S * (1 - d / (maxReach * 1.2)));
+      ctx.moveTo(p.x + dx + rad, p.y + dy);
+      ctx.arc(p.x + dx, p.y + dy, rad, 0, Math.PI * 2);
+    }
+    ctx.fill();
+
+    // Streaks: tapered spikes shooting out of the blot
+    const streaks = Math.floor(r(0, 3));
+    for (let k = 0; k < streaks; k++) {
+      const ang = Math.atan2(n.y, n.x) + r(-0.45, 0.45);
+      const len = r(0.035, 0.09) * S;
+      const half = blot * r(0.25, 0.45);
+      const ux = Math.cos(ang), uy = Math.sin(ang);
+      ctx.beginPath();
+      ctx.moveTo(bx - uy * half, by + ux * half);
+      ctx.lineTo(bx + ux * len, by + uy * len);
+      ctx.lineTo(bx + uy * half, by - ux * half);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+};
+
+// The white shard's zigzag upper edge
+const SHARD_EDGE: Pt[] = [...WHITE_SHARD.slice(2), WHITE_SHARD[0]];
+
+// Bottom-right only: white kicks out of the shard into the black; black lands
+// on the white (under the stars). The red slab stays clean on purpose.
+export const SPLATTERS = {
+  shardOut: { area: WHITE_SHARD, edge: SHARD_EDGE, direction: "out", color: PALETTE.white, seed: 5, clusters: 8 },
+  shardIn: { area: WHITE_SHARD, edge: SHARD_EDGE, direction: "in", color: PALETTE.black, seed: 17, clusters: 6 },
+} satisfies Record<string, Splatter>;
+
 // ── Nested star bursts ────────────────────────────────────────────────────────
 // Phantom Thieves star: filled five-point stars stacked from largest to
 // smallest, alternating colours, so the gaps read as thick bands.
