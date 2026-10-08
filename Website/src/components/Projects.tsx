@@ -45,7 +45,7 @@ export default function Projects({ direction = "bottom-left" }: { direction?: st
             transition={{ duration: 0.5, delay: index * 0.08, type: "spring", stiffness: 100, damping: 15 }}
             whileHover={!project.isPlaceholder ? {
               scale: 1.02,
-              boxShadow: "0px 20px 40px rgba(255, 0, 0, 0.35)"
+              boxShadow: "0px 20px 40px color-mix(in srgb, var(--red) 35%, transparent)"
             } : {}}
             className="group relative overflow-hidden flex flex-col"
             style={{
@@ -67,11 +67,11 @@ export default function Projects({ direction = "bottom-left" }: { direction?: st
               </div>
             ) : (
               <div className="w-full h-40 border-b-4 border-[var(--red)] flex items-center justify-center"
-                style={{ background: '#0a0000' }}>
+                style={{ background: 'color-mix(in srgb, var(--red) 4%, #000)' }}>
                 <span style={{
                   fontFamily: 'var(--font-bebas-neue)',
                   fontSize: '80px',
-                  color: '#FF0000',
+                  color: 'var(--red)',
                   opacity: 0.2,
                   lineHeight: 1,
                 }}>?</span>
@@ -87,7 +87,7 @@ export default function Projects({ direction = "bottom-left" }: { direction?: st
                 color: '#FFFFFF',
                 textTransform: 'uppercase',
                 letterSpacing: '2px',
-                textShadow: '2px 2px 0px #FF0000',
+                textShadow: '2px 2px 0px var(--red)',
                 marginBottom: '10px',
               }}>
                 {project.title}
@@ -107,7 +107,7 @@ export default function Projects({ direction = "bottom-left" }: { direction?: st
                         return (
                           <div key={tech} style={{
                             background: '#000',
-                            border: '2px solid #FF0000',
+                            border: '2px solid var(--red)',
                             transform: `rotate(${rot}deg)`,
                             padding: '3px 8px',
                             display: 'inline-block',
@@ -142,10 +142,10 @@ export default function Projects({ direction = "bottom-left" }: { direction?: st
                         className="relative group/btn inline-block"
                         style={{
                           background: '#000',
-                          border: '3px solid #FF0000',
+                          border: '3px solid var(--red)',
                           clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)',
                           padding: '8px 36px',
-                          boxShadow: '4px 4px 0px #FF0000',
+                          boxShadow: '4px 4px 0px var(--red)',
                         }}
                       >
                         <span style={{
@@ -155,7 +155,7 @@ export default function Projects({ direction = "bottom-left" }: { direction?: st
                           color: '#FFF',
                           textTransform: 'uppercase',
                           letterSpacing: '3px',
-                          textShadow: '2px 2px 0px #FF0000',
+                          textShadow: '2px 2px 0px var(--red)',
                           display: 'block',
                           whiteSpace: 'nowrap',
                         }}>

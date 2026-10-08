@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useCallback } from 'react'
+import { currentAccent } from './theme'
 
 const DOT_SPACING = 12
 const DOT_RADIUS = 2
@@ -7,7 +8,7 @@ const MAX_RADIUS = 5.5
 const MAX_DISPLACEMENT = 20
 const INFLUENCE_RADIUS = 120
 const LERP_SPEED = 0.12
-const DOT_COLOR = 'rgba(255, 0, 0, 0.35)'
+const DOT_ALPHA = 0.35 // dots are the theme accent at this opacity
 
 type Dot = { ox: number; oy: number; cx: number; cy: number; r: number }
 
@@ -45,7 +46,8 @@ export default function InteractiveDotCanvas() {
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.fillStyle = DOT_COLOR
+      ctx.globalAlpha = DOT_ALPHA
+      ctx.fillStyle = currentAccent()
       ctx.beginPath()
 
       const mx = mouseRef.current.x

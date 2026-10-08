@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { PALETTE, RED_SLAB, WHITE_SHARD, WHITE_SHARD_BAND, fillSlab, tracePolygon } from "./streetArt";
+import {
+  PALETTE, RED_SLAB, STAR_BURSTS, WHITE_SHARD, WHITE_SHARD_BAND,
+  drawStarBurst, fillSlab, tracePolygon,
+} from "./streetArt";
+import { THEME_EVENT } from "./theme";
 
 // Hard-edged colour blocks behind the victory bolt. Lives inside HomeMap so it
-// scales with the map during the ZoomNav zoom. Drawn once per resize.
+// scales with the map during the ZoomNav zoom. Drawn once per resize and once
+// per theme change.
 export default function StreetBackdrop() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -32,13 +37,20 @@ export default function StreetBackdrop() {
       fillSlab(ctx, WHITE_SHARD_BAND, w, h, PALETTE.greyLight);
       ctx.restore();
 
-      // 3. Red slab tearing in from the top-left
+      // 3. Star bursts on top of the white shard
+      STAR_BURSTS.forEach(burst => drawStarBurst(ctx, burst, w, h));
+
+      // 4. Red slab tearing in from the top-left
       fillSlab(ctx, RED_SLAB, w, h, PALETTE.red);
     };
 
     resizeAndDraw();
     window.addEventListener("resize", resizeAndDraw);
-    return () => window.removeEventListener("resize", resizeAndDraw);
+    window.addEventListener(THEME_EVENT, resizeAndDraw);
+    return () => {
+      window.removeEventListener("resize", resizeAndDraw);
+      window.removeEventListener(THEME_EVENT, resizeAndDraw);
+    };
   }, []);
 
   return (

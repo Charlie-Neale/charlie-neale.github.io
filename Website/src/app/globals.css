@@ -11,7 +11,9 @@ html, body {
 }
 
 :root {
-  --red: #FF0000;
+  --red: #FF0000;            /* theme accent — cycled by ThemeStar via theme.ts */
+  --on-red: #FFFFFF;         /* text on accent fills */
+  --accent-stroke: 0px;      /* outline for accent text on white (yellow theme only) */
   --black: #000000; /* Pure black */
   --white: #FFFFFF;
   --gold: #FFD700;
@@ -30,9 +32,37 @@ body {
   color: var(--white);
 }
 
-/* Custom P5 Red Crosshair Cursor */
+/* Custom P5 Red Crosshair Cursor — recoloured per theme (data URIs can't read CSS vars) */
 a, button, input, textarea, .p5-interactive {
   cursor: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23FF0000" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v20M2 12h20"/></svg>') 12 12, pointer;
+}
+html[data-theme="1"] :is(a, button, input, textarea, .p5-interactive) {
+  cursor: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%230FAAF2" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v20M2 12h20"/></svg>') 12 12, pointer;
+}
+html[data-theme="2"] :is(a, button, input, textarea, .p5-interactive) {
+  cursor: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23FFE33A" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v20M2 12h20"/></svg>') 12 12, pointer;
+}
+
+/* Invisible theme switch over the main star (ThemeStar.tsx) */
+.theme-star {
+  position: absolute;
+  left: var(--cx);
+  top: var(--cy);
+  width: var(--d);
+  height: var(--d);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  z-index: 20;
+}
+@media (orientation: portrait) {
+  .theme-star { left: var(--pcx); top: var(--pcy); width: var(--pd); height: var(--pd); }
+}
+.theme-star:focus-visible {
+  outline: 3px solid var(--white);
+  outline-offset: 4px;
 }
 
 /* Custom aggressive scrollbar for internal section panels */

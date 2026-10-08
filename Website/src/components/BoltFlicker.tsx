@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { PALETTE, Pt, VICTORY_BOLT, tracePolygon } from "./streetArt";
+import { paint } from "./theme";
 
 // ── Flicker patterns ──────────────────────────────────────────────────────────
 // An echo is a hard-edged copy of the bolt, offset in viewport fractions.
@@ -143,10 +144,10 @@ export default function BoltFlicker() {
 
     const drawEcho = (e: Echo, jx: number, jy: number) => {
       tracePolygon(ctx, VICTORY_BOLT, w, h, (e.dx + jx) * w, (e.dy + jy) * h);
-      ctx.fillStyle = e.fill;
+      ctx.fillStyle = paint(e.fill);
       ctx.fill();
       if (e.stroke) {
-        ctx.strokeStyle = e.stroke;
+        ctx.strokeStyle = paint(e.stroke);
         ctx.lineWidth = 3;
         ctx.stroke();
       }
@@ -163,7 +164,7 @@ export default function BoltFlicker() {
         ctx.lineWidth = s.width + 3;
         ctx.stroke();
       }
-      ctx.strokeStyle = s.color;
+      ctx.strokeStyle = paint(s.color);
       ctx.lineWidth = s.width;
       ctx.stroke();
     };

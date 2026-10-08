@@ -2,12 +2,15 @@
 // Pure canvas functions shared by HomeMap and StreetBackdrop. All shapes are
 // polygons in fractions of the viewport (0–1, may overshoot to bleed off-screen).
 
+import { ACCENT, paint } from "./theme";
+
 export type Pt = { x: number; y: number };
 
 // Mirrors the tokens in globals.css — canvas can't read CSS vars directly.
+// `red` is the theme accent token: always draw it through `paint()`.
 // Greys are deliberately close to black/white: felt more than noticed.
 export const PALETTE = {
-  red: "#FF0000",
+  red: ACCENT,
   black: "#000000",
   white: "#FFFFFF",
   greyDark: "#141414",
@@ -40,7 +43,7 @@ export const fillSlab = (
   dy = 0,
 ) => {
   tracePolygon(ctx, points, w, h, dx, dy);
-  ctx.fillStyle = fill;
+  ctx.fillStyle = paint(fill);
   ctx.fill();
 };
 
@@ -84,6 +87,112 @@ export const WHITE_SHARD_BAND: Pt[] = [
   { x: 1.05, y: 0.575 },
   { x: 0.695, y: 1.05 },
   { x: 0.67, y: 1.05 },
+];
+
+// ── Nested star bursts ────────────────────────────────────────────────────────
+// Phantom Thieves star: filled five-point stars stacked from largest to
+// smallest, alternating colours, so the gaps read as thick bands.
+export type StarBurst = {
+  cx: number;          // viewport fraction
+  cy: number;          // viewport fraction
+  radius: number;      // fraction of min(w, h) — keeps the star unstretched
+  innerRatio: number;  // inner/outer vertex radius; higher = chunkier star
+  rotation: number;    // degrees, whole burst
+  ringTwist: number[]; // extra degrees per ring, hand-set — one entry per ring
+  colors: string[];    // cycled outermost → innermost
+  // Portrait screens: the shard's open white sits higher (PROJECTS covers its
+  // bottom), so each burst gets its own placement there.
+  portrait: { cx: number; cy: number; radius: number };
+};
+
+const traceStar = (
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  outer: number,
+  inner: number,
+  rotationDeg: number,
+) => {
+  const start = ((rotationDeg - 90) * Math.PI) / 180; // first point straight up
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? outer : inner;
+    const a = start + (i * Math.PI) / 5;
+    const x = cx + Math.cos(a) * r;
+    const y = cy + Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+};
+
+export const drawStarBurst = (ctx: CanvasRenderingContext2D, burst: StarBurst, w: number, h: number) => {
+  const place = h > w ? burst.portrait : burst;
+  const cx = place.cx * w;
+  const cy = place.cy * h;
+  const outer = place.radius * Math.min(w, h);
+  const rings = burst.ringTwist.length;
+
+  burst.ringTwist.forEach((twist, i) => {
+    const r = outer * (1 - i / rings);
+    traceStar(ctx, cx, cy, r, r * burst.innerRatio, burst.rotation + twist);
+    ctx.fillStyle = paint(burst.colors[i % burst.colors.length]);
+    ctx.fill();
+  });
+};
+
+// STAR_BURSTS[MAIN_STAR] doubles as the theme switch (see ThemeStar).
+export const MAIN_STAR = 1;
+
+// One tight cluster on the bottom-right white shard: every burst touches at
+// least one other, white shows around the cluster. Drawn back to front.
+// Portrait: PROJECTS covers the shard's bottom, so the cluster sits in the open
+// white strip above it instead.
+const { black, red, white } = PALETTE;
+
+export const STAR_BURSTS: StarBurst[] = [
+  // Corner: big red/black burst filling the bottom-right, behind the main
+  {
+    cx: 0.95, cy: 0.95, radius: 0.15, innerRatio: 0.5, rotation: 22,
+    ringTwist: [0, -2, 1, -3, 2],
+    colors: [red, black],
+    portrait: { cx: 0.91, cy: 0.70, radius: 0.13 },
+  },
+  // Main: red/black bands like the reference
+  {
+    cx: 0.87, cy: 0.82, radius: 0.17, innerRatio: 0.5, rotation: -12,
+    ringTwist: [0, 2, -1, 3, 1, -2],
+    colors: [black, red],
+    portrait: { cx: 0.84, cy: 0.62, radius: 0.13 },
+  },
+  // Upper: red/white outline rings above the main star
+  {
+    cx: 0.93, cy: 0.685, radius: 0.09, innerRatio: 0.5, rotation: 8,
+    ringTwist: [0, 3, -2, 1],
+    colors: [red, white, red, black],
+    portrait: { cx: 0.88, cy: 0.565, radius: 0.08 },
+  },
+  // Mid: solid black/red burst on the main star's left arm
+  {
+    cx: 0.76, cy: 0.79, radius: 0.07, innerRatio: 0.5, rotation: -25,
+    ringTwist: [0, 4, -2],
+    colors: [black, red, black],
+    portrait: { cx: 0.76, cy: 0.67, radius: 0.06 },
+  },
+  // Small: black outline rings — white between them is the shard — red heart
+  {
+    cx: 0.72, cy: 0.89, radius: 0.1, innerRatio: 0.5, rotation: 14,
+    ringTwist: [0, -3, 2, 0],
+    colors: [black, white, black, red],
+    portrait: { cx: 0.79, cy: 0.75, radius: 0.07 },
+  },
+  // Bottom: black/white outline burst dipping off the bottom edge, red heart
+  {
+    cx: 0.79, cy: 0.99, radius: 0.085, innerRatio: 0.5, rotation: -6,
+    ringTwist: [0, 2, -1, 3, 0],
+    colors: [black, white, black, white, red],
+    portrait: { cx: 0.96, cy: 0.61, radius: 0.06 },
+  },
 ];
 
 // Chaotic Joker Victory Bolt — shared by HomeMap (draws it) and BoltFlicker

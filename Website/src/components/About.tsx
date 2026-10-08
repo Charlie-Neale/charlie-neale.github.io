@@ -62,7 +62,7 @@ function InfoRow({ label, value, href, external, rotate, onClickFlash }: InfoRow
           fontFamily: 'var(--font-oswald)',
           fontWeight: 700,
           fontSize: '18px',
-          color: '#FF0000',
+          color: 'var(--red)',
           textTransform: 'uppercase',
           letterSpacing: '3px',
           textShadow: '2px 2px 0px #000',
@@ -130,7 +130,7 @@ export default function About({ direction = "top-right" }: { direction?: string 
           aria-hidden
           className="absolute inset-0"
           style={{
-            background: '#FF0000',
+            background: 'var(--red)',
             clipPath: OUTER_JAG,
             zIndex: 1,
           }}
@@ -161,7 +161,7 @@ export default function About({ direction = "top-right" }: { direction?: string 
                 height: '240px',
                 flexShrink: 0,
                 background: '#000',
-                border: '4px solid #FF0000',
+                border: '4px solid var(--red)',
                 clipPath: PHOTO_CLIP,
                 position: 'relative',
                 transform: 'rotate(-2deg)',
@@ -209,7 +209,7 @@ export default function About({ direction = "top-right" }: { direction?: string 
             aria-hidden
             style={{
               height: '6px',
-              background: '#FF0000',
+              background: 'var(--red)',
               clipPath: 'polygon(2% 0, 100% 0, 98% 100%, 0 100%)',
               boxShadow: '3px 3px 0px #000',
             }}
@@ -222,7 +222,7 @@ export default function About({ direction = "top-right" }: { direction?: string 
                 fontFamily: 'var(--font-oswald)',
                 fontWeight: 700,
                 fontSize: '28px',
-                color: '#FF0000',
+                color: 'var(--red)',
                 textTransform: 'uppercase',
                 letterSpacing: '4px',
                 textShadow: '3px 3px 0px #000',
@@ -245,13 +245,13 @@ export default function About({ direction = "top-right" }: { direction?: string 
                       fontSize: '14px',
                       color: dark ? '#FFFFFF' : '#000000',
                       background: dark ? '#000000' : '#FFFFFF',
-                      border: '2px solid #FF0000',
+                      border: '2px solid var(--red)',
                       textTransform: 'uppercase',
                       letterSpacing: '2px',
                       padding: '6px 16px',
                       clipPath: CHIP_CLIP,
                       transform: `rotate(${((i % 3) - 1) * 1.2}deg) skewX(-6deg)`,
-                      textShadow: dark ? '2px 2px 0px #FF0000' : 'none',
+                      textShadow: dark ? '2px 2px 0px var(--red)' : 'none',
                       display: 'inline-block',
                     }}
                   >
@@ -269,7 +269,7 @@ export default function About({ direction = "top-right" }: { direction?: string 
                 fontFamily: 'var(--font-oswald)',
                 fontWeight: 700,
                 fontSize: '28px',
-                color: '#FF0000',
+                color: 'var(--red)',
                 textTransform: 'uppercase',
                 letterSpacing: '4px',
                 textShadow: '3px 3px 0px #000',

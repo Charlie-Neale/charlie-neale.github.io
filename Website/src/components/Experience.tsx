@@ -114,11 +114,11 @@ export default function Experience({ direction = "bottom-left" }: { direction?: 
               whileTap={{ scale: 0.94 }}
               className="relative group"
               style={{
-                background: isActive ? '#FF0000' : '#000',
-                border: isActive ? '3px solid #000' : '3px solid #FF0000',
+                background: isActive ? 'var(--red)' : '#000',
+                border: isActive ? '3px solid #000' : '3px solid var(--red)',
                 clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0 100%)',
                 padding: '10px 36px',
-                boxShadow: isActive ? '4px 4px 0px #000' : '4px 4px 0px #FF0000',
+                boxShadow: isActive ? '4px 4px 0px #000' : '4px 4px 0px var(--red)',
                 transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s',
               }}
             >
@@ -129,7 +129,7 @@ export default function Experience({ direction = "bottom-left" }: { direction?: 
                 color: '#FFF',
                 textTransform: 'uppercase',
                 letterSpacing: '3px',
-                textShadow: isActive ? '2px 2px 0px #000' : '2px 2px 0px #FF0000',
+                textShadow: isActive ? '2px 2px 0px #000' : '2px 2px 0px var(--red)',
                 display: 'block',
                 whiteSpace: 'nowrap',
               }}>
@@ -169,7 +169,7 @@ export default function Experience({ direction = "bottom-left" }: { direction?: 
               >
                 {item.image ? (
                   <div className="w-full h-56 overflow-hidden relative border-b-4 border-[var(--red)] flex items-center justify-center"
-                    style={{ background: '#0a0000' }}>
+                    style={{ background: 'color-mix(in srgb, var(--red) 4%, #000)' }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={item.image}
@@ -181,12 +181,12 @@ export default function Experience({ direction = "bottom-left" }: { direction?: 
                 ) : (
                   <div
                     className="w-full h-40 border-b-4 border-[var(--red)] flex items-center justify-center"
-                    style={{ background: '#0a0000' }}
+                    style={{ background: 'color-mix(in srgb, var(--red) 4%, #000)' }}
                   >
                     <span style={{
                       fontFamily: 'var(--font-bebas-neue)',
                       fontSize: '80px',
-                      color: '#FF0000',
+                      color: 'var(--red)',
                       opacity: 0.2,
                       lineHeight: 1,
                     }}>?</span>
@@ -201,7 +201,7 @@ export default function Experience({ direction = "bottom-left" }: { direction?: 
                     color: '#FFFFFF',
                     textTransform: 'uppercase',
                     letterSpacing: '2px',
-                    textShadow: '2px 2px 0px #FF0000',
+                    textShadow: '2px 2px 0px var(--red)',
                     marginBottom: '10px',
                   }}>
                     {item.title}
@@ -211,7 +211,7 @@ export default function Experience({ direction = "bottom-left" }: { direction?: 
                     <span style={{
                       fontFamily: 'var(--font-bangers)',
                       fontSize: '24px',
-                      color: '#FF0000',
+                      color: 'var(--red)',
                       letterSpacing: '3px',
                       textTransform: 'uppercase',
                     }}>

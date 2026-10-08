@@ -27,8 +27,10 @@ Personal portfolio for Charlie Neale (CS student, U of Toronto). Static-exported
 
 - **`ZoomNav.tsx`** — root orchestrator. Framer Motion 8× scale to a node origin; fades section panels in/out. `useRef` for stale-closure-safe timers.
 - **`HomeMap.tsx`** — canvas-rendered jagged red "victory bolt" (shadow + main bolt) over `<StreetBackdrop />`, with `<BoltFlicker />` between them. Anchors three `<MapNode>` overlays: PROJECTS / EXPERIENCE / ABOUT ME.
-- **`StreetBackdrop.tsx`** — canvas of hard-edged colour blocks (red slab top-left behind the name, white shard bottom-right). Both keep a black gap from the bolt so it reads as its own section. Inside HomeMap so it zooms with the map. The bottom-right shard is reserved for a future idea.
+- **`StreetBackdrop.tsx`** — canvas of hard-edged colour blocks (red slab top-left behind the name, white shard bottom-right). Both keep a black gap from the bolt so it reads as its own section. Inside HomeMap so it zooms with the map. Six Phantom Thieves star bursts (`STAR_BURSTS`, drawn back to front by `drawStarBurst`) bundle on the shard — red/black banded and outline styles, one filling the far bottom-right corner — with white showing around the cluster. **Every star must touch at least one other and the six must form one connected cluster**, at desktop and portrait sizes; re-check after moving any star. Stars are sized from `min(w, h)` so they never stretch, and each has its own `portrait` placement (on tall screens PROJECTS covers the shard's bottom).
 - **`BoltFlicker.tsx`** — JS-driven flicker behind the bolt. Every 1.5–4s plays one of five hand-tuned patterns (red / black / white bolt echoes, shuffled rotation, per-burst offset jitter) and throws 3–6 random zigzag sparks off the bolt's vertices. Hard on/off frames, sparks vanish instantly — nothing fades. Idles between bursts; off under `prefers-reduced-motion`.
+- **`theme.ts`** — accent themes: P5 red `#FF0000` → P3 blue `#0FAAF2` → P4 yellow `#FFE33A`. `cycleTheme()` sets `--red`, `--on-red`, `--accent-stroke` and `data-theme` on `<html>`, then fires `THEME_EVENT` so canvases redraw. Not persisted — every load starts on P5 red.
+- **`ThemeStar.tsx`** — invisible round button over the main star (`STAR_BURSTS[MAIN_STAR]`), positioned from the same config via CSS vars (`.theme-star`, portrait set via `@media (orientation: portrait)`). Click = flash + `cycleTheme()`.
 - **`streetArt.ts`** — pure canvas helpers (`tracePolygon`, `fillSlab`), the `PALETTE` mirror of the CSS tokens, `VICTORY_BOLT`, and the hand-placed slab point arrays.
 - **`LetterLabel.tsx`** — per-letter chaos primitive. Each letter gets its own rotation (-15° to +15°), skew, color, background, border. Sizes: `NAV`, `PANEL`, `MEDIUM`. **Every prominent heading uses this — never replace with plain text.**
 - **`SectionPanel.tsx`** — full-screen scrollable wrapper for Projects/Experience/About. Skewed red Back button at top-left, chaos title at top-center.
@@ -67,6 +69,7 @@ Personal portfolio for Charlie Neale (CS student, U of Toronto). Static-exported
 
 - Don't replace `<LetterLabel>` headings with plain text or auto-generated styles.
 - Don't introduce colors outside `--red` / `--black` / `--white` / `--gold` (plus the two background greys).
+- **Never hard-code the accent.** `--red` is the theme accent, not always red. In styles use `var(--red)` (text on accent fills: `var(--on-red)`). In canvas code use `PALETTE.red` / `ACCENT` passed through `paint()`, or `currentAccent()`, and redraw on `THEME_EVENT`. Check new UI in all three themes — yellow is the one that breaks contrast.
 - Don't add blur, gradients, or rounded corners > 4px. Ambient animations snap on/off, they don't fade (see `BoltFlicker`).
 - Don't remove `<InteractiveDotCanvas />` or the bolt flicker — they're the persistent texture.
 - Don't restore `basePath` in `next.config.mjs` (user GH Pages site).

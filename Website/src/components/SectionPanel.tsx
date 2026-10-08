@@ -47,7 +47,7 @@ export default function SectionPanel({ section, onBack }: { section: SectionType
           transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 18 }}
           className="pointer-events-auto relative group"
           style={{
-            background: '#FF0000',
+            background: 'var(--red)',
             clipPath: 'polygon(12% 0, 100% 0, 88% 100%, 0 100%)',
             padding: '10px 40px 10px 32px',
             boxShadow: '4px 4px 0px #000',

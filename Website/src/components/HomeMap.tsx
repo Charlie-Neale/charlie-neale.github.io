@@ -6,7 +6,9 @@ import { SectionType } from "./ZoomNav";
 import { LetterLabel, PROJECTS_NAV, EXPERIENCE_NAV, ABOUT_ME_NAV } from "./LetterLabel";
 import StreetBackdrop from "./StreetBackdrop";
 import BoltFlicker from "./BoltFlicker";
+import ThemeStar from "./ThemeStar";
 import { VICTORY_BOLT, tracePolygon } from "./streetArt";
+import { THEME_EVENT, currentAccent } from "./theme";
 
 const NAV_CONFIGS = {
   PROJECTS: PROJECTS_NAV,
@@ -33,14 +35,14 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
       sharpCtx.scale(dpr, dpr);
       sharpCtx.clearRect(0, 0, w, h);
 
-      // 1. SECONDARY BACKGROUND SHADOW BOLT (Pure red, offset left and down)
+      // 1. SECONDARY BACKGROUND SHADOW BOLT (Accent, offset left and down)
       tracePolygon(sharpCtx, VICTORY_BOLT, w, h, -w * 0.04, h * 0.04);
-      sharpCtx.fillStyle = "#FF0000"; // Pure red accent
+      sharpCtx.fillStyle = currentAccent();
       sharpCtx.fill();
 
-      // 2. MAIN PURE RED BOLT
+      // 2. MAIN ACCENT BOLT
       tracePolygon(sharpCtx, VICTORY_BOLT, w, h);
-      sharpCtx.fillStyle = "#FF0000"; // Pure saturated red
+      sharpCtx.fillStyle = currentAccent();
       sharpCtx.fill();
 
       // 3. CUT-PAPER THICK STROKE
@@ -56,7 +58,11 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
 
     resizeAndDraw();
     window.addEventListener("resize", resizeAndDraw);
-    return () => window.removeEventListener("resize", resizeAndDraw);
+    window.addEventListener(THEME_EVENT, resizeAndDraw);
+    return () => {
+      window.removeEventListener("resize", resizeAndDraw);
+      window.removeEventListener(THEME_EVENT, resizeAndDraw);
+    };
   }, []);
 
 
@@ -70,10 +76,13 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
       <BoltFlicker />
 
       {/* Canvas Sharp Pass (Static) */}
-      <canvas 
-        ref={sharpCanvasRef} 
+      <canvas
+        ref={sharpCanvasRef}
         className="absolute inset-0 w-full h-full pointer-events-none z-10"
       />
+
+      {/* Invisible click target over the main star — cycles the accent theme */}
+      <ThemeStar />
 
       {/* Top Left Corner Identity Watermark */}
       <div className="absolute top-8 left-8 sm:top-12 sm:left-12 z-20 flex flex-col items-start pointer-events-none">
@@ -104,6 +113,8 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
             letterSpacing: '4px',
             textTransform: 'uppercase',
             marginTop: '6px',
+            textShadow: '2px 2px 0px #000', // stays readable on every accent
+
           }}
         >
           UNDERGRADUATE · UNIVERSITY OF TORONTO
@@ -230,7 +241,7 @@ const MapNode = ({
             inset: 0,
             transform: isHovered ? 'translate(7px, 7px)' : 'translate(4px, 4px)',
             transition: 'transform 0.15s ease',
-            background: '#FF0000',
+            background: 'var(--red)',
             clipPath: 'polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%)',
             zIndex: 0,
           }}
