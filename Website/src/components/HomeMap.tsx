@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { SectionType } from "./ZoomNav";
 import { LetterLabel, PROJECTS_NAV, EXPERIENCE_NAV, ABOUT_ME_NAV } from "./LetterLabel";
+import StreetBackdrop from "./StreetBackdrop";
+import BoltFlicker from "./BoltFlicker";
+import { VICTORY_BOLT, tracePolygon } from "./streetArt";
 
 const NAV_CONFIGS = {
   PROJECTS: PROJECTS_NAV,
@@ -12,94 +15,40 @@ const NAV_CONFIGS = {
 } as const;
 
 export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionType, x?: number, y?: number) => void }) {
-  const glowCanvasRef = useRef<HTMLCanvasElement>(null);
   const sharpCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const glowCanvas = glowCanvasRef.current;
     const sharpCanvas = sharpCanvasRef.current;
-    if (!glowCanvas || !sharpCanvas) return;
-    
-    const glowCtx = glowCanvas.getContext("2d");
-    const sharpCtx = sharpCanvas.getContext("2d");
-    if (!glowCtx || !sharpCtx) return;
+    const sharpCtx = sharpCanvas?.getContext("2d");
+    if (!sharpCanvas || !sharpCtx) return;
 
     const resizeAndDraw = () => {
       const dpr = window.devicePixelRatio || 1;
-      const rect = glowCanvas.getBoundingClientRect();
+      const rect = sharpCanvas.getBoundingClientRect();
       const w = rect.width;
       const h = rect.height;
 
-      [glowCanvas, sharpCanvas].forEach(canvas => {
-        canvas.width = w * dpr;
-        canvas.height = h * dpr;
-      });
-      [glowCtx, sharpCtx].forEach(ctx => {
-        ctx.scale(dpr, dpr);
-        ctx.clearRect(0, 0, w, h);
-      });
-
-      // Chaotic Joker Victory Bolt Polygon (Percentages of w, h)
-      const primaryPoints = [
-        // Bottom Edge
-        { x: -0.1, y: 1.1 },
-        { x: 0.2, y: 1.1 },
-        
-        // Right/Lower Edge (Zigzagging up-right)
-        { x: 0.35, y: 0.85 }, // Near PROJECTS
-        { x: 0.25, y: 0.75 }, // notch
-        { x: 0.55, y: 0.65 }, // spike
-        { x: 0.40, y: 0.55 }, // deep cut
-        { x: 0.65, y: 0.50 }, // Near EXPERIENCE
-        { x: 0.60, y: 0.35 }, // notch
-        { x: 0.85, y: 0.25 }, // spike
-        { x: 0.80, y: 0.15 }, // notch
-        { x: 1.1, y: -0.1 },  // Tip off-screen
-        
-        // Top/Upper Edge (Zigzagging down-left)
-        { x: 0.9, y: -0.1 }, 
-        { x: 0.6, y: 0.15 }, // cut down
-        { x: 0.65, y: 0.2 }, // spike out
-        { x: 0.4, y: 0.35 }, // cut down
-        { x: 0.45, y: 0.45 },// spike out
-        { x: 0.1, y: 0.55 }, // deep cut down left
-        { x: 0.2, y: 0.65 }, // spike out
-        { x: 0.0, y: 0.8 },  // cut down
-        { x: 0.05, y: 0.9 }, // spike out
-        { x: -0.1, y: 1.0 }
-      ];
-
-      const drawPolygon = (ctx: CanvasRenderingContext2D, points: {x:number, y:number}[], dx=0, dy=0) => {
-        ctx.beginPath();
-        ctx.moveTo(points[0].x * w + dx, points[0].y * h + dy);
-        for(let i = 1; i < points.length; i++) {
-          ctx.lineTo(points[i].x * w + dx, points[i].y * h + dy);
-        }
-        ctx.closePath();
-      };
+      sharpCanvas.width = w * dpr;
+      sharpCanvas.height = h * dpr;
+      sharpCtx.scale(dpr, dpr);
+      sharpCtx.clearRect(0, 0, w, h);
 
       // 1. SECONDARY BACKGROUND SHADOW BOLT (Pure red, offset left and down)
-      drawPolygon(sharpCtx, primaryPoints, -w * 0.04, h * 0.04);
+      tracePolygon(sharpCtx, VICTORY_BOLT, w, h, -w * 0.04, h * 0.04);
       sharpCtx.fillStyle = "#FF0000"; // Pure red accent
       sharpCtx.fill();
 
-      // 2. GLOW PASS (Rendered into glow canvas, CSS pulse animated)
-      drawPolygon(glowCtx, primaryPoints);
-      glowCtx.filter = "blur(30px)";
-      glowCtx.fillStyle = "#FF0000";
-      glowCtx.fill();
-
-      // 3. MAIN PURE RED BOLT
-      drawPolygon(sharpCtx, primaryPoints);
+      // 2. MAIN PURE RED BOLT
+      tracePolygon(sharpCtx, VICTORY_BOLT, w, h);
       sharpCtx.fillStyle = "#FF0000"; // Pure saturated red
       sharpCtx.fill();
 
-      // 4. CUT-PAPER THICK STROKE
+      // 3. CUT-PAPER THICK STROKE
       sharpCtx.strokeStyle = "rgba(255, 255, 255, 0.4)";
       sharpCtx.lineWidth = 6;
       sharpCtx.stroke();
 
-      // 5. THIN WHITE 1px OUTLINE
+      // 4. THIN WHITE 1px OUTLINE
       sharpCtx.strokeStyle = "#FFFFFF";
       sharpCtx.lineWidth = 1;
       sharpCtx.stroke();
@@ -114,11 +63,11 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-start text-[var(--white)] overflow-hidden">
       
-      {/* Canvas Glow Pass (CSS Pulse Animated) */}
-      <canvas 
-        ref={glowCanvasRef} 
-        className="absolute inset-0 w-full h-full pointer-events-none z-10 bolt-pulse"
-      />
+      {/* Street-art colour blocks behind everything */}
+      <StreetBackdrop />
+
+      {/* Randomised flicker echoes + flying zigzags, behind the bolt */}
+      <BoltFlicker />
 
       {/* Canvas Sharp Pass (Static) */}
       <canvas 
@@ -139,7 +88,7 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
             lineHeight: 1,
             color: '#FFFFFF',
             textTransform: 'uppercase',
-            textShadow: '3px 3px 0px #FF0000',
+            textShadow: '4px 4px 0px #000000',
             WebkitTextStroke: '2px #FFFFFF',
           }}
         >
@@ -164,7 +113,7 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
           style={{
             fontFamily: 'var(--font-marker)',
             fontSize: '14px',
-            color: '#FF0000',
+            color: '#000000',
             marginTop: '3px',
           }}
         >

@@ -21,17 +21,20 @@ Personal portfolio for Charlie Neale (CS student, U of Toronto). Static-exported
 
 - `src/app/layout.tsx` — imports fonts, sets CSS vars (`--font-oswald`, `--font-bebas-neue`, `--font-marker`, `--font-bangers`, `--font-rajdhani`), wraps children in `<InteractiveDotCanvas />` (background) and `<FlashProvider>` (`useFlash()` hook).
 - `src/app/page.tsx` — renders only `<ZoomNav />`. Entire UX lives inside that tree.
-- `src/app/globals.css` — `html, body { overflow: hidden }` (locked viewport), color tokens, red crosshair cursor, `.p5-scrollbar`, `.bolt-pulse`, `.p5-heading`.
+- `src/app/globals.css` — `html, body { overflow: hidden }` (locked viewport), color tokens, red crosshair cursor, `.p5-scrollbar`, `.p5-heading`.
 
 ## Components (`src/components/`)
 
 - **`ZoomNav.tsx`** — root orchestrator. Framer Motion 8× scale to a node origin; fades section panels in/out. `useRef` for stale-closure-safe timers.
-- **`HomeMap.tsx`** — canvas-rendered jagged red "victory bolt" (blur-pulse layer + sharp layer). Anchors three `<MapNode>` overlays: PROJECTS / EXPERIENCE / CONTACT.
+- **`HomeMap.tsx`** — canvas-rendered jagged red "victory bolt" (shadow + main bolt) over `<StreetBackdrop />`, with `<BoltFlicker />` between them. Anchors three `<MapNode>` overlays: PROJECTS / EXPERIENCE / ABOUT ME.
+- **`StreetBackdrop.tsx`** — canvas of hard-edged colour blocks (red slab top-left behind the name, white shard bottom-right). Both keep a black gap from the bolt so it reads as its own section. Inside HomeMap so it zooms with the map. The bottom-right shard is reserved for a future idea.
+- **`BoltFlicker.tsx`** — JS-driven flicker behind the bolt. Every 1.5–4s plays one of five hand-tuned patterns (red / black / white bolt echoes, shuffled rotation, per-burst offset jitter) and throws 3–6 random zigzag sparks off the bolt's vertices. Hard on/off frames, sparks vanish instantly — nothing fades. Idles between bursts; off under `prefers-reduced-motion`.
+- **`streetArt.ts`** — pure canvas helpers (`tracePolygon`, `fillSlab`), the `PALETTE` mirror of the CSS tokens, `VICTORY_BOLT`, and the hand-placed slab point arrays.
 - **`LetterLabel.tsx`** — per-letter chaos primitive. Each letter gets its own rotation (-15° to +15°), skew, color, background, border. Sizes: `NAV`, `PANEL`, `MEDIUM`. **Every prominent heading uses this — never replace with plain text.**
-- **`SectionPanel.tsx`** — full-screen scrollable wrapper for Projects/Experience/Contact. Skewed red Back button at top-left, chaos title at top-center.
+- **`SectionPanel.tsx`** — full-screen scrollable wrapper for Projects/Experience/About. Skewed red Back button at top-left, chaos title at top-center.
 - **`Projects.tsx`** — 3-col grid of project cards. Reads `content/projects.json`. Pads to 6 with "Coming Soon" placeholders.
 - **`Experience.tsx`** — vertical-timeline scaffold. `experienceData = []` currently → renders large rotated "SOON".
-- **`Contact.tsx`** — name header (chaos letters) + email (Permanent Marker) + textarea + skewed submit button. Calls `useFlash()` on submit.
+- **`About.tsx`** — about-me panel with photo and a "Contact Me" link (there is no separate Contact section).
 - **`FlashProvider.tsx`** — React context exposing `useFlash()`. Renders 200ms red overlay (opacity 0.3, `mix-blend-mode: screen`) for the "all-out attack" feel.
 - **`InteractiveDotCanvas.tsx`** — fixed background red dot grid (12px spacing, 2px radius; expands to 5.5px within 120px of cursor). Persistent texture — do not remove.
 
@@ -42,7 +45,7 @@ Personal portfolio for Charlie Neale (CS student, U of Toronto). Static-exported
 
 ## Persona 5 visual idioms — the rules
 
-- **Colors** (`globals.css:13-18`): `--red: #FF0000`, `--black: #000000`, `--white: #FFFFFF`, `--gold: #FFD700`. Pure primaries only. No greys, no pastels. Note: `tailwind.config.ts` doesn't expose these — use the CSS vars or raw hex.
+- **Colors** (`globals.css:13-18`): `--red: #FF0000`, `--black: #000000`, `--white: #FFFFFF`, `--gold: #FFD700`. Pure primaries only, no pastels. Two background-only greys, `--grey-dark: #141414` and `--grey-light: #EDEDED`, sit right next to black/white so they're only noticed up close — use them sparingly for echoes and cut bands, never on text or nodes. Note: `tailwind.config.ts` doesn't expose these — use the CSS vars or raw hex.
 - **Clip-paths** — parallelogram skews:
   - Section surfaces: `polygon(5% 0, 100% 0, 95% 100%, 0 100%)`
   - Buttons / map nodes: `polygon(10% 0, 100% 0, 90% 100%, 0 100%)`
@@ -63,8 +66,8 @@ Personal portfolio for Charlie Neale (CS student, U of Toronto). Static-exported
 ## Conventions / what NOT to do
 
 - Don't replace `<LetterLabel>` headings with plain text or auto-generated styles.
-- Don't introduce colors outside `--red` / `--black` / `--white` / `--gold`.
-- Don't add blur, gradients, or rounded corners > 4px.
-- Don't remove `<InteractiveDotCanvas />` or the bolt pulse — they're the persistent texture.
+- Don't introduce colors outside `--red` / `--black` / `--white` / `--gold` (plus the two background greys).
+- Don't add blur, gradients, or rounded corners > 4px. Ambient animations snap on/off, they don't fade (see `BoltFlicker`).
+- Don't remove `<InteractiveDotCanvas />` or the bolt flicker — they're the persistent texture.
 - Don't restore `basePath` in `next.config.mjs` (user GH Pages site).
 - Don't add `images: { domains: [...] }` — `unoptimized: true` is required for static export.

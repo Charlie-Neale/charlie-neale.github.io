@@ -15,6 +15,9 @@ html, body {
   --black: #000000; /* Pure black */
   --white: #FFFFFF;
   --gold: #FFD700;
+  /* Background-only greys — sit right next to black/white, never on text or nodes */
+  --grey-dark: #141414;
+  --grey-light: #EDEDED;
 }
 
 body {
@@ -45,14 +48,6 @@ a, button, input, textarea, .p5-interactive {
   border-left: 2px solid #333;
 }
 
-/* Idle Pulse for Map Glow */
-@keyframes boltPulse {
-  0%, 100% { opacity: 0.10; }
-  50% { opacity: 0.18; }
-}
-.bolt-pulse {
-  animation: boltPulse 3s ease-in-out infinite;
-}
 
 /* P5 Hard-Shadow Heading — Oswald 700, no blur */
 .p5-heading {
