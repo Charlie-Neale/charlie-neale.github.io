@@ -16,6 +16,8 @@ import { THEME_EVENT, currentAccent } from "./theme";
 const NAME_CARD_CLIP =
   'polygon(0 6%, 4% 0, 62% 3%, 100% 0, 96% 48%, 100% 100%, 38% 96%, 3% 100%, 0 70%)';
 
+const NAME_CARD_HIDDEN = { x: -120, opacity: 0 };
+
 const NAV_CONFIGS = {
   PROJECTS: PROJECTS_NAV,
   EXPERIENCE: EXPERIENCE_NAV,
@@ -24,6 +26,7 @@ const NAV_CONFIGS = {
 
 export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionType, x?: number, y?: number) => void }) {
   const sharpCanvasRef = useRef<HTMLCanvasElement>(null);
+  const intro = useIntro();
 
   useEffect(() => {
     const sharpCanvas = sharpCanvasRef.current;
@@ -104,29 +107,35 @@ export default function HomeMap({ onNavigate }: { onNavigate: (section: SectionT
       </ParallaxLayer>
 
       {/* Top Left Corner Identity Watermark — on a torn-paper black card so it
-          stays readable over the slab and bolt in every accent theme */}
-      <ParallaxLayer
-        depth={12}
-        className="z-20"
-        hidden={{ x: -120, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 150, damping: 15, delay: 0.2 }}
-      >
+          stays readable over the slab and bolt in every accent theme.
+          The TEXT is never hidden: it's the page's Largest Contentful Paint, and
+          text that starts at opacity 0 and fades in on the compositor never
+          registers as LCP (Lighthouse then can't score performance at all).
+          Only the card backing slams in behind it. */}
+      <ParallaxLayer depth={12} className="z-20">
       <div
         className="absolute top-5 left-5 sm:top-9 sm:left-9 flex flex-col items-start pointer-events-none"
         style={{ padding: '14px 26px 16px 18px' }}
       >
-        {/* White cut-paper offset behind the card — shows on the slab in any theme */}
-        <div
+        <motion.div
           aria-hidden
           className="absolute inset-0"
-          style={{ background: '#FFF', clipPath: NAME_CARD_CLIP, transform: 'translate(7px, 7px)' }}
-        />
-        {/* Black card face */}
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{ background: '#000', clipPath: NAME_CARD_CLIP }}
-        />
+          initial={NAME_CARD_HIDDEN}
+          animate={intro === "pending"
+            ? NAME_CARD_HIDDEN
+            : { x: 0, opacity: 1, transition: intro === "skip" ? { duration: 0 } : { type: "spring", stiffness: 150, damping: 15, delay: 0.2 } }}
+        >
+          {/* White cut-paper offset behind the card — shows on the slab in any theme */}
+          <div
+            className="absolute inset-0"
+            style={{ background: '#FFF', clipPath: NAME_CARD_CLIP, transform: 'translate(7px, 7px)' }}
+          />
+          {/* Black card face */}
+          <div
+            className="absolute inset-0"
+            style={{ background: '#000', clipPath: NAME_CARD_CLIP }}
+          />
+        </motion.div>
 
         <h1
           className="relative"

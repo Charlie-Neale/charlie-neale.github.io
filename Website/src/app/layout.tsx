@@ -10,6 +10,7 @@ import "@fontsource/rajdhani/700.css";
 import "./globals.css";
 import FlashProvider from "@/components/FlashProvider";
 import InteractiveDotCanvas from "@/components/InteractiveDotCanvas";
+import CursorStars from "@/components/CursorStars";
 
 export const metadata: Metadata = {
   title: "Charlie Neale — Developer · Analyst · Builder",
@@ -37,6 +38,8 @@ export default function RootLayout({
         <FlashProvider>
           {children}
         </FlashProvider>
+        {/* Joker victory-screen sparkles trailing the cursor — above everything */}
+        <CursorStars />
       </body>
     </html>
   );
